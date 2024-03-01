@@ -50,4 +50,23 @@ func (c *Checkout) Scan(item string) {
 // includes any discounts from special pricing rules.
 func (c *Checkout) GetTotalPrice() int {
     return c.totalPrice
+}
+
+// recalculateTotal recalculates the total price of items in the cart.
+// It applies special pricing rules where applicable, falling back to unit pricing otherwise.
+func (c *Checkout) recalculateTotal() {
+    total := 0 // Start with a total of 0
+    for item, count := range c.itemCounts {
+        // Check if the item has a special pricing rule
+        if specialPrice, ok := specialPrices[item]; ok {
+            bundles := count / specialPrice[0] // Calculate how many times the special price applies
+            remainder := count % specialPrice[0] // Calculate how many items are left that don't qualify for the special price
+            // Add the cost of items qualifying for the special price and those that don't to the total
+            total += bundles*specialPrice[1] + remainder*unitPrices[item]
+        } else {
+            // If no special pricing rule applies, add the item's total cost based on unit price
+            total += count * unitPrices[item]
+        }
+    }
+    c.totalPrice = total // Update the total price with the newly calculated total
 }	
