@@ -23,11 +23,18 @@ var unitPrices = map[string]int{
     "D": 15, 
 }
 
+
+// SpecialPrice defines a structure for special pricing rules.
+type SpecialPrice struct {
+    QuantityRequired  int
+    SpecialTotalPrice int
+}
+
 // specialPrices maps each item SKU to an array representing a special pricing rule.
 // The first element is the quantity of items required for the special price, and the second element is the special price itself.
-var specialPrices = map[string][2]int{
-    "A": [2]int{3, 130}, // Buying 3 of item A costs 130
-    "B": [2]int{2, 45},  // Buying 2 of item B costs 45
+var specialPrices = map[string]SpecialPrice{
+    "A": {3, 130}, // Buying 3 of item A costs 130
+    "B": {2, 45}, // Buying 2 of item B costs 45
     //Everything else priced as normal
 }	
 
@@ -59,10 +66,10 @@ func (c *Checkout) recalculateTotal() {
     for item, count := range c.itemCounts {
         // Check if the item has a special pricing rule
         if specialPrice, ok := specialPrices[item]; ok {
-            bundles := count / specialPrice[0] // Calculate how many times the special price applies
-            remainder := count % specialPrice[0] // Calculate how many items are left that don't qualify for the special price
+            bundles := count / specialPrice.QuantityRequired // Calculate how many times the special price applies
+            remainder := count % specialPrice.QuantityRequired // Calculate how many items are left that don't qualify for the special price
             // Add the cost of items qualifying for the special price and those that don't to the total
-            total += bundles*specialPrice[1] + remainder*unitPrices[item]
+            total += bundles*specialPrice.SpecialTotalPrice + remainder*unitPrices[item]
         } else {
             // If no special pricing rule applies, add the item's total cost based on unit price
             total += count * unitPrices[item]
